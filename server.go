@@ -2,6 +2,7 @@ package ldapserver
 
 import (
 	"bufio"
+	"log"
 	"net"
 	"sync"
 	"time"
@@ -54,7 +55,7 @@ func (s *Server) ListenAndServe(addr string, options ...func(*Server)) error {
 	if e != nil {
 		return e
 	}
-	Logger.Printf("Listening on %s\n", addr)
+	log.Printf("Listening on %s\n", addr)
 
 	for _, option := range options {
 		option(s)
@@ -68,7 +69,7 @@ func (s *Server) serve() error {
 	defer s.Listener.Close()
 
 	if s.Handler == nil {
-		Logger.Panicln("No LDAP Request Handler defined")
+		log.Panicln("No LDAP Request Handler defined")
 	}
 
 	i := 0
@@ -76,7 +77,7 @@ func (s *Server) serve() error {
 	for {
 		select {
 		case <-s.chDone:
-			Logger.Print("Stopping server")
+			log.Print("Stopping server")
 			s.Listener.Close()
 			return nil
 		default:
@@ -94,7 +95,7 @@ func (s *Server) serve() error {
 			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
 				continue
 			}
-			Logger.Println(err)
+			log.Println(err)
 		}
 
 		cli, err := s.newClient(rw)
@@ -105,12 +106,10 @@ func (s *Server) serve() error {
 
 		i = i + 1
 		cli.Numero = i
-		Logger.Printf("Connection client [%d] from %s accepted", cli.Numero, cli.rwc.RemoteAddr().String())
+		log.Printf("Connection client [%d] from %s accepted", cli.Numero, cli.rwc.RemoteAddr().String())
 		s.wg.Add(1)
 		go cli.serve()
 	}
-
-	return nil
 }
 
 // Return a new session with the connection
@@ -137,7 +136,7 @@ func (s *Server) newClient(rwc net.Conn) (c *client, err error) {
 // In either case, when the LDAP session is terminated.
 func (s *Server) Stop() {
 	close(s.chDone)
-	Logger.Print("gracefully closing client connections...")
+	log.Print("gracefully closing client connections...")
 	s.wg.Wait()
-	Logger.Print("all clients connection closed")
+	log.Print("all clients connection closed")
 }
