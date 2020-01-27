@@ -2,6 +2,7 @@ package ldapserver
 
 import (
 	"bufio"
+	"crypto/tls"
 	"log"
 	"net"
 	"sync"
@@ -55,7 +56,35 @@ func (s *Server) ListenAndServe(addr string, options ...func(*Server)) error {
 	if e != nil {
 		return e
 	}
-	log.Printf("Listening on %s\n", addr)
+	log.Printf("listening on %s\n", addr)
+
+	for _, option := range options {
+		option(s)
+	}
+
+	return s.serve()
+}
+
+// ListenAndServeTLS doing the same as ListenAndServe,
+// but uses tls.Listen instead of net.Listen. If
+// s.Addr is blank, ":686" is used.
+func (s *Server) ListenAndServeTLS(addr string, certFile string, keyFile string, options ...func(*Server)) error {
+
+	if addr == "" {
+		addr = ":686"
+	}
+
+	cert, e := tls.LoadX509KeyPair(certFile, keyFile)
+	if e != nil {
+		return e
+	}
+
+	tlsConfig := tls.Config{Certificates: []tls.Certificate{cert}}
+	s.Listener, e = tls.Listen("tcp", addr, &tlsConfig)
+	if e != nil {
+		return e
+	}
+	log.Printf("listening on %s\n", addr)
 
 	for _, option := range options {
 		option(s)
