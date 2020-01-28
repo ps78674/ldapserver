@@ -8,14 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	ldap "github.com/vjeantet/ldapserver"
+	ldap "github.com/ps78674/ldapserver"
 )
 
 func main() {
-
-	//ldap logger
-	ldap.Logger = log.New(os.Stdout, "[server] ", log.LstdFlags)
-
 	//Create a new LDAP Server
 	server := ldap.NewServer()
 
@@ -24,7 +20,14 @@ func main() {
 	server.Handle(routes)
 
 	// listen on 10389
-	go server.ListenAndServe("127.0.0.1:10389")
+	chErr := make(chan error)
+	defer close(chErr)
+
+	go server.ListenAndServe("127.0.0.1:10389", chErr)
+	if err := <-chErr; err != nil {
+		log.Printf("error starting server: %s\n", err)
+		os.Exit(1)
+	}
 
 	// When CTRL+C, SIGINT and SIGTERM signal occurs
 	// Then stop server gracefully
