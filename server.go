@@ -3,6 +3,7 @@ package ldapserver
 import (
 	"bufio"
 	"crypto/tls"
+	"fmt"
 	"log"
 	"net"
 	"sync"
@@ -45,16 +46,13 @@ func (s *Server) Handle(h Handler) {
 // ListenAndServe listens on the TCP network address s.Addr and then
 // calls Serve to handle requests on incoming connections.  If
 // s.Addr is blank, ":389" is used.
-func (s *Server) ListenAndServe(addr string, options ...func(*Server)) error {
-
-	if addr == "" {
-		addr = ":389"
-	}
-
+func (s *Server) ListenAndServe(addr string, ch chan error, options ...func(*Server)) {
 	var e error
 	s.Listener, e = net.Listen("tcp", addr)
+
 	if e != nil {
-		return e
+		ch <- fmt.Errorf("error creating listener: %s", e)
+		return
 	}
 	log.Printf("listening on %s\n", addr)
 
@@ -62,13 +60,13 @@ func (s *Server) ListenAndServe(addr string, options ...func(*Server)) error {
 		option(s)
 	}
 
-	return s.serve()
+	s.serve()
 }
 
 // ListenAndServeTLS doing the same as ListenAndServe,
 // but uses tls.Listen instead of net.Listen. If
 // s.Addr is blank, ":686" is used.
-func (s *Server) ListenAndServeTLS(addr string, certFile string, keyFile string, options ...func(*Server)) error {
+func (s *Server) ListenAndServeTLS(addr string, certFile string, keyFile string, ch chan error, options ...func(*Server)) {
 
 	if addr == "" {
 		addr = ":686"
@@ -76,13 +74,15 @@ func (s *Server) ListenAndServeTLS(addr string, certFile string, keyFile string,
 
 	cert, e := tls.LoadX509KeyPair(certFile, keyFile)
 	if e != nil {
-		return e
+		ch <- fmt.Errorf("error creating certificate chain: %s", e)
+		return
 	}
 
 	tlsConfig := tls.Config{Certificates: []tls.Certificate{cert}}
 	s.Listener, e = tls.Listen("tcp", addr, &tlsConfig)
 	if e != nil {
-		return e
+		ch <- fmt.Errorf("error creating listener: %s", e)
+		return
 	}
 	log.Printf("listening on %s\n", addr)
 
@@ -90,11 +90,11 @@ func (s *Server) ListenAndServeTLS(addr string, certFile string, keyFile string,
 		option(s)
 	}
 
-	return s.serve()
+	s.serve()
 }
 
 // Handle requests messages on the ln listener
-func (s *Server) serve() error {
+func (s *Server) serve() {
 	defer s.Listener.Close()
 
 	if s.Handler == nil {
@@ -108,7 +108,7 @@ func (s *Server) serve() error {
 		case <-s.chDone:
 			log.Print("Stopping server")
 			s.Listener.Close()
-			return nil
+			return
 		default:
 		}
 
@@ -120,18 +120,14 @@ func (s *Server) serve() error {
 		if s.WriteTimeout != 0 {
 			rw.SetWriteDeadline(time.Now().Add(s.WriteTimeout))
 		}
-		if nil != err {
+		if err != nil {
 			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
 				continue
 			}
 			log.Println(err)
 		}
 
-		cli, err := s.newClient(rw)
-
-		if err != nil {
-			continue
-		}
+		cli := s.newClient(rw)
 
 		i = i + 1
 		cli.Numero = i
@@ -143,14 +139,14 @@ func (s *Server) serve() error {
 
 // Return a new session with the connection
 // client has a writer and reader buffer
-func (s *Server) newClient(rwc net.Conn) (c *client, err error) {
+func (s *Server) newClient(rwc net.Conn) (c *client) {
 	c = &client{
 		srv: s,
 		rwc: rwc,
 		br:  bufio.NewReader(rwc),
 		bw:  bufio.NewWriter(rwc),
 	}
-	return c, nil
+	return c
 }
 
 // Termination of the LDAP session is initiated by the server sending a
