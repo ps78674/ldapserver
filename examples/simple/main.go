@@ -21,8 +21,6 @@ func main() {
 
 	// listen on 10389
 	chErr := make(chan error)
-	defer close(chErr)
-
 	go server.ListenAndServe("127.0.0.1:10389", chErr)
 	if err := <-chErr; err != nil {
 		log.Printf("error starting server: %s\n", err)

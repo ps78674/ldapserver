@@ -54,6 +54,11 @@ func (s *Server) ListenAndServe(addr string, ch chan error, options ...func(*Ser
 		ch <- fmt.Errorf("error creating listener: %s", e)
 		return
 	}
+
+	if ch != nil {
+		close(ch)
+	}
+
 	log.Printf("listening on %s\n", addr)
 
 	for _, option := range options {
@@ -84,6 +89,11 @@ func (s *Server) ListenAndServeTLS(addr string, certFile string, keyFile string,
 		ch <- fmt.Errorf("error creating listener: %s", e)
 		return
 	}
+
+	if ch != nil {
+		close(ch)
+	}
+
 	log.Printf("listening on %s\n", addr)
 
 	for _, option := range options {
