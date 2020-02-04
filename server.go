@@ -20,7 +20,7 @@ type Server struct {
 
 	// OnNewConnection, if non-nil, is called on new connections.
 	// If it returns non-nil, the connection is closed.
-	OnNewConnection func(c net.Conn) error
+	onNewConnection func(c net.Conn) error
 
 	// Handler handles ldap message received from client
 	// it SHOULD "implement" RequestHandler interface
@@ -38,7 +38,7 @@ func NewServer() *Server {
 // If a handler already exists for pattern, Handle panics
 func (s *Server) Handle(h Handler) {
 	if s.Handler != nil {
-		panic("LDAP: multiple Handler registrations")
+		log.Fatalln("error registering request handler: multiple registrations")
 	}
 	s.Handler = h
 }
@@ -83,7 +83,7 @@ func (s *Server) ListenAndServeTLS(addr string, certFile string, keyFile string,
 		return
 	}
 
-	tlsConfig := tls.Config{Certificates: []tls.Certificate{cert}}
+	tlsConfig := tls.Config{Certificates: []tls.Certificate{cert}, MinVersion: tls.VersionSSL30, MaxVersion: tls.VersionTLS12}
 	s.Listener, e = tls.Listen("tcp", addr, &tlsConfig)
 	if e != nil {
 		ch <- fmt.Errorf("error creating listener: %s", e)
@@ -103,12 +103,12 @@ func (s *Server) ListenAndServeTLS(addr string, certFile string, keyFile string,
 	s.serve()
 }
 
-// Handle requests messages on the ln listener
+// Handle requests messages on the listener
 func (s *Server) serve() {
 	defer s.Listener.Close()
 
 	if s.Handler == nil {
-		log.Panicln("No LDAP Request Handler defined")
+		log.Fatalln("error handling request messages: no request handler defined")
 	}
 
 	i := 0
@@ -116,7 +116,7 @@ func (s *Server) serve() {
 	for {
 		select {
 		case <-s.chDone:
-			log.Print("Stopping server")
+			log.Print("stopping server")
 			s.Listener.Close()
 			return
 		default:
@@ -141,7 +141,7 @@ func (s *Server) serve() {
 
 		i = i + 1
 		cli.Numero = i
-		log.Printf("Connection client [%d] from %s accepted", cli.Numero, cli.rwc.RemoteAddr().String())
+		log.Printf("client [%d]: accepted connection from %s", cli.Numero, cli.rwc.RemoteAddr().String())
 		s.wg.Add(1)
 		go cli.serve()
 	}
@@ -171,7 +171,7 @@ func (s *Server) newClient(rwc net.Conn) (c *client) {
 // In either case, when the LDAP session is terminated.
 func (s *Server) Stop() {
 	close(s.chDone)
-	log.Print("gracefully closing client connections...")
+	log.Print("gracefully closing client connections")
 	s.wg.Wait()
-	log.Print("all clients connection closed")
+	log.Print("all client connections closed")
 }

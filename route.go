@@ -1,7 +1,6 @@
 package ldapserver
 
 import (
-	"log"
 	"strings"
 
 	ldap "github.com/ps78674/goldap/message"
@@ -148,12 +147,12 @@ func (h *RouteMux) ServeLDAP(w ResponseWriter, r *Message) {
 			continue
 		}
 
-		if route.label != "" {
-			log.Printf("")
-			log.Printf(" ROUTE MATCH ; %s", route.label)
-			log.Printf("")
-			// Logger.Printf(" ROUTE MATCH ; %s", runtime.FuncForPC(reflect.ValueOf(route.handler).Pointer()).Name())
-		}
+		// if route.label != "" {
+		// 	log.Printf("")
+		// 	log.Printf(" ROUTE MATCH ; %s", route.label)
+		// 	log.Printf("")
+		// 	// Logger.Printf(" ROUTE MATCH ; %s", runtime.FuncForPC(reflect.ValueOf(route.handler).Pointer()).Name())
+		// }
 
 		route.handler(w, r)
 		return
@@ -172,7 +171,7 @@ func (h *RouteMux) ServeLDAP(w ResponseWriter, r *Message) {
 		h.notFoundRoute.handler(w, r)
 	} else {
 		res := NewResponse(LDAPResultUnwillingToPerform)
-		res.SetDiagnosticMessage("Operation not implemented by server")
+		res.SetDiagnosticMessage("operation not implemented by server")
 		w.Write(res)
 	}
 }

@@ -43,7 +43,7 @@ func handleBind(w ldap.ResponseWriter, m *ldap.Message) {
 	res := ldap.NewBindResponse(ldap.LDAPResultSuccess)
 
 	if string(r.Name()) == "login" {
-		// w.Write(res)
+		w.Write(res)
 		return
 	}
 

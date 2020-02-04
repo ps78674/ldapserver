@@ -1,8 +1,6 @@
 package ldapserver
 
 import (
-	"fmt"
-
 	ldap "github.com/ps78674/goldap/message"
 )
 
@@ -12,9 +10,10 @@ type Message struct {
 	Done   chan bool
 }
 
-func (m *Message) String() string {
-	return fmt.Sprintf("MessageId=%d, %s", m.MessageID(), m.ProtocolOpName())
-}
+// unused now
+// func (m *Message) String() string {
+// 	return fmt.Sprintf("MessageId=%d, %s", m.MessageID(), m.ProtocolOpName())
+// }
 
 // Abandon close the Done channel, to notify handler's user function to stop any
 // running process
