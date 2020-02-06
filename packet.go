@@ -2,7 +2,6 @@ package ldapserver
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"log"
 
@@ -39,7 +38,7 @@ func (msg *messagePacket) readMessage() (m ldap.LDAPMessage, err error) {
 func decodeMessage(bytes []byte) (ret ldap.LDAPMessage, err error) {
 	defer func() {
 		if e := recover(); e != nil {
-			err = errors.New(fmt.Sprintf("%s", e))
+			err = fmt.Errorf("%s", e)
 		}
 	}()
 	zero := 0

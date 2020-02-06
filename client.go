@@ -63,7 +63,7 @@ func (c *client) serve() {
 	c.closing = make(chan bool)
 	if onc := c.srv.onNewConnection; onc != nil {
 		if err := onc(c.rwc); err != nil {
-			log.Printf("onNewConnection error: %s", err)
+			log.Printf("client [%d]: onNewConnection error: %s", c.Numero, err)
 			return
 		}
 	}
@@ -120,7 +120,7 @@ func (c *client) serve() {
 			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
 				log.Printf("client [%d]: read timeout: %s", c.Numero, err)
 			} else {
-				log.Printf("readMessagePacket error: %s", err)
+				log.Printf("client [%d]: readMessagePacket error: %s", c.Numero, err)
 			}
 			return
 		}
@@ -129,7 +129,7 @@ func (c *client) serve() {
 		message, err := messagePacket.readMessage()
 
 		if err != nil {
-			log.Printf("error reading message : %s\n\t%x", err.Error(), messagePacket.bytes)
+			log.Printf("client [%d]: error reading message: %s", c.Numero, err)
 			continue
 		}
 		log.Printf("client [%d]: <<< %s", c.Numero, message.ProtocolOpName())
