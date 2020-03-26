@@ -68,11 +68,11 @@ func (s *Server) ListenAndServe(addr string, ch chan error, options ...func(*Ser
 
 // ListenAndServeTLS doing the same as ListenAndServe,
 // but uses tls.Listen instead of net.Listen. If
-// s.Addr is blank, ":686" is used.
+// s.Addr is blank, ":636" is used.
 func (s *Server) ListenAndServeTLS(addr string, certFile string, keyFile string, ch chan error, options ...func(*Server)) {
 
 	if addr == "" {
-		addr = ":686"
+		addr = ":636"
 	}
 
 	cert, e := tls.LoadX509KeyPair(certFile, keyFile)
