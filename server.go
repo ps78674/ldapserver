@@ -59,8 +59,6 @@ func (s *Server) ListenAndServe(addr string, ch chan error, options ...func(*Ser
 		close(ch)
 	}
 
-	log.Printf("listening on %s\n", addr)
-
 	for _, option := range options {
 		option(s)
 	}
@@ -93,8 +91,6 @@ func (s *Server) ListenAndServeTLS(addr string, certFile string, keyFile string,
 	if ch != nil {
 		close(ch)
 	}
-
-	log.Printf("listening on %s\n", addr)
 
 	for _, option := range options {
 		option(s)
