@@ -55,9 +55,7 @@ func (s *Server) ListenAndServe(addr string, ch chan error, options ...func(*Ser
 		return
 	}
 
-	if ch != nil {
-		close(ch)
-	}
+	close(ch)
 
 	for _, option := range options {
 		option(s)
@@ -88,9 +86,7 @@ func (s *Server) ListenAndServeTLS(addr string, certFile string, keyFile string,
 		return
 	}
 
-	if ch != nil {
-		close(ch)
-	}
+	close(ch)
 
 	for _, option := range options {
 		option(s)
