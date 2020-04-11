@@ -12,6 +12,7 @@ import (
 
 type client struct {
 	Numero      int
+	EntriesSent int
 	srv         *Server
 	rwc         net.Conn
 	br          *bufio.Reader
@@ -205,6 +206,7 @@ func (c *client) writeMessage(m *ldap.LDAPMessage) {
 type ResponseWriter interface {
 	// Write writes the LDAPResponse to the connection as part of an LDAP reply.
 	Write(po ldap.ProtocolOp)
+	WriteMessage(m *ldap.LDAPMessage)
 }
 
 type responseWriterImpl struct {
@@ -214,6 +216,11 @@ type responseWriterImpl struct {
 
 func (w responseWriterImpl) Write(po ldap.ProtocolOp) {
 	m := ldap.NewLDAPMessageWithProtocolOp(po)
+	m.SetMessageID(w.messageID)
+	w.chanOut <- m
+}
+
+func (w responseWriterImpl) WriteMessage(m *ldap.LDAPMessage) {
 	m.SetMessageID(w.messageID)
 	w.chanOut <- m
 }
