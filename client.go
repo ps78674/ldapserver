@@ -2,6 +2,7 @@ package ldapserver
 
 import (
 	"bufio"
+	"io"
 	"log"
 	"net"
 	"sync"
@@ -120,7 +121,7 @@ func (c *client) serve() {
 		if err != nil {
 			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
 				log.Printf("client [%d]: read timeout: %s", c.Numero, err)
-			} else {
+			} else if err != io.EOF { // do not show EOF messages
 				log.Printf("client [%d]: readMessagePacket error: %s", c.Numero, err)
 			}
 			return
