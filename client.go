@@ -134,7 +134,8 @@ func (c *client) serve() {
 			log.Printf("client [%d]: error reading message: %s", c.Numero, err)
 			continue
 		}
-		log.Printf("client [%d]: <<< %s", c.Numero, message.ProtocolOpName())
+		// prints all inbound ops - no need for this
+		// log.Printf("client [%d]: <<< %s", c.Numero, message.ProtocolOpName())
 
 		// TODO: Use a implementation to limit runnuning request by client
 		// solution 1 : when the buffered output channel is full, send a busy
@@ -197,7 +198,8 @@ func (c *client) close() {
 
 func (c *client) writeMessage(m *ldap.LDAPMessage) {
 	data, _ := m.Write()
-	log.Printf("client [%d]: >>> %s", c.Numero, m.ProtocolOpName())
+	// prints all outgoind ops (include all search entries) - no need for this
+	// log.Printf("client [%d]: >>> %s", c.Numero, m.ProtocolOpName())
 	c.bw.Write(data.Bytes())
 	c.bw.Flush()
 }
