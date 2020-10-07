@@ -219,12 +219,12 @@ type responseWriterImpl struct {
 
 func (w responseWriterImpl) Write(po ldap.ProtocolOp) {
 	m := ldap.NewLDAPMessageWithProtocolOp(po)
-	m.SetMessageID(w.messageID)
+	ldap.SetMessageID(m, w.messageID)
 	w.chanOut <- m
 }
 
 func (w responseWriterImpl) WriteMessage(m *ldap.LDAPMessage) {
-	m.SetMessageID(w.messageID)
+	ldap.SetMessageID(m, w.messageID)
 	w.chanOut <- m
 }
 
