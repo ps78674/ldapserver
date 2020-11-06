@@ -13,8 +13,10 @@ import (
 
 // ClientACL - search / bind ACL
 type ClientACL struct {
-	Search bool
-	Modify bool
+	BindCN  string
+	Search  bool
+	Compare bool
+	Modify  bool
 }
 
 type client struct {
