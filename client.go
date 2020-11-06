@@ -11,7 +11,14 @@ import (
 	ldap "github.com/ps78674/goldap/message"
 )
 
+// ClientACL - search / bind ACL
+type ClientACL struct {
+	Search bool
+	Modify bool
+}
+
 type client struct {
+	ACL         ClientACL
 	Numero      int
 	EntriesSent int
 	srv         *Server
@@ -25,6 +32,10 @@ type client struct {
 	mutex       sync.Mutex
 	writeDone   chan bool
 	rawData     []byte
+}
+
+func (c *client) SetACL(acl ClientACL) {
+	c.ACL = acl
 }
 
 func (c *client) GetConn() net.Conn {
