@@ -11,7 +11,7 @@ import (
 	ldap "github.com/ps78674/goldap/message"
 )
 
-// ClientACL - search / bind ACL
+// ClientACL can be used to determine whether client is allowed to perform search / compare / modify
 type ClientACL struct {
 	BindEntry string
 	Search    bool
