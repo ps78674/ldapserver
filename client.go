@@ -147,7 +147,7 @@ func (c *client) serve() {
 
 		if err != nil {
 			log.Printf("client [%d]: error reading message: %s", c.Numero, err)
-			continue
+			return
 		}
 		// prints all inbound ops - no need for this
 		// log.Printf("client [%d]: <<< %s", c.Numero, message.ProtocolOpName())
