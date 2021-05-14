@@ -20,8 +20,8 @@ type ClientACL struct {
 }
 
 type client struct {
-	ACL         ClientACL
-	Numero      int
+	acl         ClientACL
+	numero      int
 	srv         *Server
 	rwc         net.Conn
 	br          *bufio.Reader
@@ -35,8 +35,16 @@ type client struct {
 	rawData     []byte
 }
 
+func (c *client) ACL() ClientACL {
+	return c.acl
+}
+
 func (c *client) SetACL(acl ClientACL) {
-	c.ACL = acl
+	c.acl = acl
+}
+
+func (c *client) Numero() int {
+	return c.numero
 }
 
 func (c *client) GetConn() net.Conn {
@@ -77,7 +85,7 @@ func (c *client) serve() {
 	c.closing = make(chan bool)
 	if onc := c.srv.onNewConnection; onc != nil {
 		if err := onc(c.rwc); err != nil {
-			log.Printf("client [%d]: onNewConnection error: %s", c.Numero, err)
+			log.Printf("client [%d]: onNewConnection error: %s", c.numero, err)
 			return
 		}
 	}
@@ -132,9 +140,9 @@ func (c *client) serve() {
 		messagePacket, err := c.ReadPacket()
 		if err != nil {
 			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
-				log.Printf("client [%d]: read timeout: %s", c.Numero, err)
+				log.Printf("client [%d]: read timeout: %s", c.numero, err)
 			} else if err != io.EOF { // do not show EOF messages
-				log.Printf("client [%d]: readMessagePacket error: %s", c.Numero, err)
+				log.Printf("client [%d]: readMessagePacket error: %s", c.numero, err)
 			}
 			return
 		}
@@ -143,11 +151,11 @@ func (c *client) serve() {
 		message, err := messagePacket.readMessage()
 
 		if err != nil {
-			log.Printf("client [%d]: error reading message: %s", c.Numero, err)
+			log.Printf("client [%d]: error reading message: %s", c.numero, err)
 			return
 		}
 		// prints all inbound ops - no need for this
-		// log.Printf("client [%d]: <<< %s", c.Numero, message.ProtocolOpName())
+		// log.Printf("client [%d]: <<< %s", c.numero, message.ProtocolOpName())
 
 		// TODO: Use a implementation to limit runnuning request by client
 		// solution 1 : when the buffered output channel is full, send a busy
@@ -185,7 +193,7 @@ func (c *client) serve() {
 // * close client connection
 // * signal to server that client shutdown is ok
 func (c *client) close() {
-	log.Printf("client [%d]: closing connection", c.Numero)
+	log.Printf("client [%d]: closing connection", c.numero)
 	close(c.closing)
 
 	// stop reading from client
@@ -203,7 +211,7 @@ func (c *client) close() {
 
 	<-c.writeDone // Wait for the last message sent to be written
 	c.rwc.Close() // close client connection
-	log.Printf("client [%d]: connection closed", c.Numero)
+	log.Printf("client [%d]: connection closed", c.numero)
 
 	c.srv.wg.Done() // signal to server that client shutdown is ok
 }
@@ -211,7 +219,7 @@ func (c *client) close() {
 func (c *client) writeMessage(m *ldap.LDAPMessage) {
 	data, _ := m.Write()
 	// prints all outgoind ops (include all search entries) - no need for this
-	// log.Printf("client [%d]: >>> %s", c.Numero, m.ProtocolOpName())
+	// log.Printf("client [%d]: >>> %s", c.numero, m.ProtocolOpName())
 	c.bw.Write(data.Bytes())
 	c.bw.Flush()
 }

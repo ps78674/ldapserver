@@ -132,8 +132,8 @@ func (s *Server) serve() {
 		cli := s.newClient(rw)
 
 		i = i + 1
-		cli.Numero = i
-		log.Printf("client [%d]: accepted connection from %s", cli.Numero, cli.rwc.RemoteAddr().String())
+		cli.numero = i
+		log.Printf("client [%d]: accepted connection from %s", cli.numero, cli.rwc.RemoteAddr().String())
 		s.wg.Add(1)
 		go cli.serve()
 	}
