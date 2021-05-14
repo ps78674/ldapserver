@@ -2,7 +2,6 @@ package ldapserver
 
 import (
 	"bufio"
-	"crypto/tls"
 	"io"
 	"log"
 	"net"
@@ -23,10 +22,8 @@ type ClientACL struct {
 type client struct {
 	ACL         ClientACL
 	Numero      int
-	EntriesSent int
 	srv         *Server
 	rwc         net.Conn
-	tls.Conn
 	br          *bufio.Reader
 	bw          *bufio.Writer
 	chanOut     chan *ldap.LDAPMessage
